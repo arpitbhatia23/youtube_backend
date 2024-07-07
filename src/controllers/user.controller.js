@@ -4,15 +4,19 @@ import {apiError} from '../utils/apiError.js'
 import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { apiResponse } from "../utils/apiResponse.js"
-
+import jwt from "jsonwebtoken"
 const generateAccessTokenAndRefreshToken=async(userID)=>{
     try {
+        console.log(userID)
       const user=  await User.findById(userID)
-     const accessToken= user.generateAccessToken()
-      const refreshToken=user.generateRefreshToken()
+     const accessToken=  user.generateAccessToken()
+      const refreshToken=  user.generateRefreshToken()
       user.refreshToken=refreshToken
+      
+
      await user.save({validateBeforeSave:false})
-   
+     console.log(user)
+
      return {accessToken,refreshToken}
 
     } catch (error) {
@@ -93,21 +97,21 @@ const loginUSer=asynchandler(async(req,res)=>{
 // send cookies
 
 const {email,username,password}=req.body
-if(!username || !email){
-    throw apiError(400,"username or email is requried")
+if(!username && !email){
+    throw new apiError(400,"username or email is requried")
 }
 const user=await User.findOne({$or: [{email},{username}] })
 if(!user){
-    throw apiError(400,"user not exit")
+    throw new apiError(400,"user not exit")
 }
 
 const isPasswordVaild=await user.isPasswordcorrect(password)
  if(!isPasswordVaild){
-    throw apiError(401,'Invalid user credentials')
+    throw new apiError(401,'Invalid user credentials')
  }
  const {accessToken,refreshToken}=await generateAccessTokenAndRefreshToken(user._id)
 
- const loggedInUser=User.findById(user._id).select('-password -refreshToken')
+ const loggedInUser= await User.findById(user._id).select('-password -refreshToken')
  const options={
     httpOnly:true,
     secure:true
@@ -126,11 +130,12 @@ const isPasswordVaild=await user.isPasswordcorrect(password)
 
 })
 const logoutUser=asynchandler(async(req,res)=>{
-   await User.findById(
+   await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set:{
-                refreshToken:undefined
+            $unset:{
+                refreshToken:1,
+                
             }
         },
         {
@@ -142,7 +147,7 @@ const logoutUser=asynchandler(async(req,res)=>{
         secure:true
      }
      return res.status(200)
-     .clearCookie("accesstoken",options)
+     .clearCookie("accessToken",options)
      .clearCookie('refreshToken',options)
      .json(new apiResponse(200,{},'user logged out'))
 })

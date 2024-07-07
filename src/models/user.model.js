@@ -40,7 +40,7 @@ const userSchema= new Schema({
         type:String,
         required:[true,"password is required"]
     },
-    refreshtoken:{
+    refreshToken:{
         type:String
     }
 },{timestamps:true})
@@ -62,7 +62,7 @@ return jwt.sign({
 },
 process.env.ACCESS_TOKEN_SECRET,
 {
-    expiresIn:process.env.ACCES_TOKEN_EXPIRY
+    expiresIn:process.env.ACCESS_TOKEN_EXPIRY
 }
 )
 }
@@ -77,4 +77,5 @@ userSchema.methods.generateRefreshToken=function(){
     }
     )
 }
+
 export const User=mongoose.model("User",userSchema)
