@@ -2,10 +2,11 @@ import { asynchandler} from "../utils/asyncHandler.js"
 
 import {apiError} from '../utils/apiError.js'
 import {User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {deleteOnCloudninary, uploadOnCloudinary} from "../utils/cloudinary.js"
 import { apiResponse } from "../utils/apiResponse.js"
 import jwt from 'jsonwebtoken'
 import { request } from "express"
+import mongoose from "mongoose"
 const generateAccessTokenAndRefreshToken=async(userID)=>{
     try {
         console.log(userID)
@@ -72,8 +73,14 @@ if(!avatar)
 }
  const user= await User.create({
     fullName,
-    avatar:avatar.url,
-    coverimage:coverImage?.url || "",
+    avatar:{
+        url:avatar.url,
+        public_id:avatar.public
+    },
+    coverimage:{
+        url:coverImage.url|| "",
+        public_id:coverImage.public_id
+    }, 
      email,
      password,
      username:username.toLowerCase()
@@ -206,13 +213,16 @@ const refreshAccessToken=asynchandler(async(req,res)=>{
 //change password 
 const changeCurrentPassword=asynchandler(async(req,res)=>{
     const {oldPassword,newPassword}=req.body
- const user= await User.findById(req.user?._id) 
+    console.log(oldPassword,newPassword)
+    const user = await User.findById(req.user?._id)
+     console.log(user)
 const isPasswordCorrect=await user.isPasswordcorrect(oldPassword)
+console.log(isPasswordCorrect)
 if(!isPasswordCorrect){
     throw new apiError(401,"Invalid Old password")
 }
 user.password=newPassword
-User.save({validateBeforeSave:false})
+user.save({validateBeforeSave:false})
 return res.status(200)
 .json(new apiResponse(200,{},"password change successfully")) 
 
@@ -227,7 +237,8 @@ const getCurrentUser=asynchandler(async(req,res)=>{
 // update user details
 const UpdateAccountDetails=asynchandler(async(req,res)=>{
     const {fullName,email}=req.body 
-    if(!fullName || !email){
+    console.log(fullName,email)
+    if(!(fullName || !email)){
         throw new apiError(400,"all field  required")
     }
   const user= await  User.findByIdAndUpdate(
@@ -241,7 +252,7 @@ const UpdateAccountDetails=asynchandler(async(req,res)=>{
             new:true
         }
     ).select("-password ")
-    return req.status(200)
+    return res.status(200)
     .json(new apiResponse(200,user,"account details updated succesfully"))
 })
 // update avatar
@@ -257,13 +268,16 @@ const updateAvatar=asynchandler(async(req,res)=>{
     }
   const user=  await User.findByIdAndUpdate(req.user?._id,{
         $set:{
-            avatar:avatar.url
+            avatar:{
+                url:avatar.url,
+                public_id:avatar.public_id
+            }
         }
     },{new:true}).select("-password")
+   deleteOnCloudninary(req.user?.avatar.public_id)
     return res.status(200)
     .json(new apiResponse(200,user,"avatar updated"))
 })
-
 
 // update coverImage
 const updateUserCoverImage=asynchandler(async(req,res)=>{
@@ -277,17 +291,23 @@ const updateUserCoverImage=asynchandler(async(req,res)=>{
     throw new apiError(400,"error while uploading image")
         
     }
-  const user=  await User.findByIdAndUpdate(req.User?._id,{
+  const user=  await User.findByIdAndUpdate(req.user?._id,{
         $set:{
-            coverimage:coverImage
+            coverimage:{
+                url:coverImage.url|| "",
+                public_id:coverImage.public_id
+            }, 
         }
     },{new:true}).select("-password")
+    deleteOnCloudninary(req.user?.coverimage.public_id)
+
     return res.status(200)
     .json(new apiResponse(200,user,"coverimage updated"))
 })
 
 const getUserChannelProfile=asynchandler(async(req,res)=>{
     const {username}=req.params
+    console.log(username)
 if(!username?.trim()){
     throw new apiError(400,"username is missing")
 }
@@ -302,7 +322,7 @@ if(!username?.trim()){
             from:"subscriptions",
             localField:'_id',
             foreignField:"channel",
-            as:"suscribers"
+            as:"subscribers"
 
         }
     },
@@ -335,9 +355,9 @@ if(!username?.trim()){
         $project:{
             fullName:1,
             username:1,
-            subscriberCount,
-            channelSubscribedToCount,
-            isSubscribed,
+            subscriberCount:1,
+            channelSubscribedToCount:1,
+            isSubscribed:1,
             avatar:1,
             coverimage:1,
             email:1,
@@ -346,11 +366,61 @@ if(!username?.trim()){
 
 ])
 if(!channel?.length){
-    throw new apiError(400,"channel doesn't exit")
-}
-return res.status(200)
-        .json(new apiResponse(200,channel[0],"user channel fetched successfully"))
+    throw new apiError(404,"channel doesn't exit")
+} 
+console.log(channel)
+return res
+     .status(200)   
+     .json(new apiResponse(200,channel[0],"user channel fetched successfully"))
 
+})
+const getWatchHistory=asynchandler(async(req,res)=>{
+const user=await User.aggregate([
+    {
+        $match:{
+            _id:new mongoose.Types.ObjectId(req.user._id)
+        }
+    },
+    {
+        $lookup:{
+            from :"videos",
+            localField:"watchHistory",
+            foreignField:"_id",
+            as:"watchHistory",
+            pipeline:[{
+                $lookup:{
+                    from:"users",
+                    localField:"owner",
+                    foreignField:"_id",
+                    as:"owner",
+                    pipeline:[
+                        {
+                            $project:{
+                                fullName:1,
+                                username:1,
+                                avatar:1,
+                            }
+                        },
+                        {
+                          $addFields:{
+                                owner:{
+                                    $first:"$owner"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }]
+        }
+    }
+])
+
+return res.status(200)
+          .json(
+            new apiResponse(200,user[0].watchhistory,
+                "watchHistory fetch sucessfully"
+            )
+          )
 })
 
 export {
@@ -363,5 +433,6 @@ export {
     UpdateAccountDetails,
     updateAvatar,
     updateUserCoverImage,
-    getUserChannelProfile
+    getUserChannelProfile,
+    getWatchHistory
 }

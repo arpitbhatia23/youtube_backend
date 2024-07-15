@@ -24,12 +24,19 @@ const userSchema= new Schema({
         trim:true,
     },
     avatar:{
-        type:String,//cloudinary url
+        type:{
+            url:String,
+            public_id:String
+        },//cloudinary url
+
         required:true,
         
     },
     coverimage:{
-        type:String,
+        type:{
+            url:String,
+            public_id:String
+        }
         
     },
     watchhistory:[{
