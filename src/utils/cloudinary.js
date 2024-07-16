@@ -36,4 +36,5 @@ const deleteOnCloudninary=async(public_id)=>{
         
     }
 }
+
 export {uploadOnCloudinary,deleteOnCloudninary}
