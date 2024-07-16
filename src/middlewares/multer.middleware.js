@@ -7,8 +7,7 @@ import multer from "multer";
         cb(null,file.originalname)
     }
  })
- export const upload = multer({storage, limits:
-    {
-        fileSize:1*1000*1000,
-    }
+ export const upload = multer({
+    storage, 
+   
  })

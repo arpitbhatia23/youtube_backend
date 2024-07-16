@@ -9,8 +9,11 @@ const videoSchema=new Schema({
                 },
                 required:true
                },
-      tumbhnali:{
-        type:String,
+      thumbnail:{
+        type:{
+          url:String,
+          public_id:String
+        },
         required:true
        },
       title:{
