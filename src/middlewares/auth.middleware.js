@@ -7,7 +7,6 @@ export const verifyJwt=asynchandler(async(req,res,next)=>{
     const token=  req.cookies?.accessToken || req.header('Authorization')?.replace('Bearer ','')
   
     if(!token){
-      console.log(401,'unauthorized request')
       throw new apiError(401,'unauthorized request')
     }
    
@@ -18,7 +17,6 @@ export const verifyJwt=asynchandler(async(req,res,next)=>{
     console.log(401,'invalid access token')
       throw new apiError(401,'invalid access token')
   }
-  console.log(user)
   req.user=user
   } catch (error) {
     console.log(401,error?.message || 'unauthorized request')

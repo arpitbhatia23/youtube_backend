@@ -30,7 +30,19 @@ const deleteOnCloudninary=async(public_id)=>{
         if(!public_id){
             return null
         }
-        await cloudinary.uploader.destroy(public_id)
+        await cloudinary.uploader.destroy(public_id,{resource_type:"image"})
+        
+    } catch (error) {
+        console.log(error.message)
+        
+    }
+}
+const deleteVideoOnCloudninary=async(public_id)=>{
+    try {
+        if(!public_id){
+            return null
+        }
+        await cloudinary.uploader.destroy(public_id,{resource_type:"video"})
         
     } catch (error) {
         console.log(error.message)
@@ -38,4 +50,4 @@ const deleteOnCloudninary=async(public_id)=>{
     }
 }
 
-export {uploadOnCloudinary,deleteOnCloudninary}
+export {uploadOnCloudinary,deleteOnCloudninary,deleteVideoOnCloudninary}

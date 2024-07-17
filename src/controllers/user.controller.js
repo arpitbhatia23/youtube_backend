@@ -9,7 +9,6 @@ import { request } from "express"
 import mongoose from "mongoose"
 const generateAccessTokenAndRefreshToken=async(userID)=>{
     try {
-        console.log(userID)
       const user=  await User.findById(userID)
      const accessToken=  user.generateAccessToken()
       const refreshToken=  user.generateRefreshToken()
@@ -17,12 +16,10 @@ const generateAccessTokenAndRefreshToken=async(userID)=>{
       
 
      await user.save({validateBeforeSave:false})
-     console.log(user)
 
      return {accessToken,refreshToken}
 
     } catch (error) {
-        console.log(500,'something went wrong while generating refresh and access token')
        throw new apiError(500,'something went wrong while generating refresh and access token') 
     }
 }
@@ -43,12 +40,10 @@ const {fullName,email,username,password }=req.body
 
 if ([fullName,username,email,password].some((field) => field?.trim() === "")) 
 {
-    console.log(400,"All fields are required")
    throw new apiError(400,"All fields are required")
 }
 const existedUser=await User.findOne({$or:[{username},{email}]})
 if (existedUser) {
-    console.log(409,"user already exist ")
     throw new apiError(409,"user already exist ")
 }
 const avatarLocalPath= req.files?.avatar[0]?.path;
@@ -58,16 +53,13 @@ let  coverImageLocalPath
     coverImageLocalPath = req.files.coverImage[0].path
 }
 if (!avatarLocalPath) {
-    console.log(400,"Avatar file is required")
     throw new apiError(400,"Avatar file is required")
 }
 
 const avatar=await uploadOnCloudinary(avatarLocalPath)
 const coverImage=await uploadOnCloudinary(coverImageLocalPath)
-
 if(!avatar)
     {
-        console.log(400,"Avatar file is required")
     throw new apiError(400,"Avatar file is required")
    
 }
@@ -75,11 +67,11 @@ if(!avatar)
     fullName,
     avatar:{
         url:avatar.url,
-        public_id:avatar.public
+        public_id:avatar.public_id
     },
     coverimage:{
-        url:coverImage.url|| "",
-        public_id:coverImage.public_id
+        url:coverImage?.url|| "",
+        public_id:coverImage?.public_id
     }, 
      email,
      password,
@@ -89,7 +81,6 @@ const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
 )
 if(!createdUser){
-    console.log(500 ,"something went wrong while registerring user ")
     throw new apiError(500 ,"something went wrong while registerring user ")
 }
 
@@ -110,18 +101,15 @@ const loginUSer=asynchandler(async(req,res)=>{
 
 const {email,username,password}=req.body
 if(!username && !email){
-    console.log(400,"username or email is requried")
     throw new apiError(400,"username or email is requried")
 }
 const user=await User.findOne({$or: [{email},{username}] })
 if(!user){
-    console.log(400,"user not exit")
     throw new apiError(400,"user not exit")
 }
 
 const isPasswordVaild=await user.isPasswordcorrect(password)
  if(!isPasswordVaild){
-    console.log(401,'Invalid user credentials')
     throw new apiError(401,'Invalid user credentials')
  }
  const {accessToken,refreshToken}=await generateAccessTokenAndRefreshToken(user._id)
@@ -213,11 +201,8 @@ const refreshAccessToken=asynchandler(async(req,res)=>{
 //change password 
 const changeCurrentPassword=asynchandler(async(req,res)=>{
     const {oldPassword,newPassword}=req.body
-    console.log(oldPassword,newPassword)
     const user = await User.findById(req.user?._id)
-     console.log(user)
 const isPasswordCorrect=await user.isPasswordcorrect(oldPassword)
-console.log(isPasswordCorrect)
 if(!isPasswordCorrect){
     throw new apiError(401,"Invalid Old password")
 }
@@ -237,7 +222,6 @@ const getCurrentUser=asynchandler(async(req,res)=>{
 // update user details
 const UpdateAccountDetails=asynchandler(async(req,res)=>{
     const {fullName,email}=req.body 
-    console.log(fullName,email)
     if(!(fullName || !email)){
         throw new apiError(400,"all field  required")
     }
@@ -307,8 +291,7 @@ const updateUserCoverImage=asynchandler(async(req,res)=>{
 
 const getUserChannelProfile=asynchandler(async(req,res)=>{
     const {username}=req.params
-    console.log(username)
-if(!username?.trim()){
+if(username===username){
     throw new apiError(400,"username is missing")
 }
  const channel=  await User.aggregate([
@@ -368,7 +351,6 @@ if(!username?.trim()){
 if(!channel?.length){
     throw new apiError(404,"channel doesn't exit")
 } 
-console.log(channel)
 return res
      .status(200)   
      .json(new apiResponse(200,channel[0],"user channel fetched successfully"))
