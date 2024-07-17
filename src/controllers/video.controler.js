@@ -3,7 +3,6 @@ import { apiError } from "../utils/apiError.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { deleteOnCloudninary, deleteVideoOnCloudninary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import {apiResponse} from "../utils/apiResponse.js"
-import { Schema } from "mongoose";
 
 
 
