@@ -291,7 +291,7 @@ const updateUserCoverImage=asynchandler(async(req,res)=>{
 
 const getUserChannelProfile=asynchandler(async(req,res)=>{
     const {username}=req.params
-if(username===username){
+if(username===":username"){
     throw new apiError(400,"username is missing")
 }
  const channel=  await User.aggregate([
@@ -317,6 +317,14 @@ if(username===username){
             as:"subscribedTO"
         }
     },
+    {$lookup:{
+        from:"videos",
+        localField:"_id",
+        foreignField:"owner",
+        as:"videos"
+    }
+
+    },
     {
         $addFields:{
             subscriberCount:{
@@ -331,7 +339,20 @@ if(username===username){
                     then:true,
                     else:false,
                 }
+            },
+            videos: {
+                $map: {
+                    input: "$videos",
+                    as: "video",
+                    in: {
+                        _id: "$$video._id",
+                       url:"$$video.videofile.url",
+                        title: "$$video.title",
+                        // Add other fields as needed
+                    }
+                }
             }
+
         }
     },
     {
@@ -344,6 +365,7 @@ if(username===username){
             avatar:1,
             coverimage:1,
             email:1,
+            videos:1
         }
     }
 

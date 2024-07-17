@@ -5,7 +5,7 @@ import { deleteOnCloudninary, deleteVideoOnCloudninary, uploadOnCloudinary } fro
 import {apiResponse} from "../utils/apiResponse.js"
 
 
-
+// publish video 
 const publishVideo=asynchandler(async(req,res)=>{
 
 const {title,description}=req.body
@@ -128,6 +128,7 @@ return res.status(200)
 
 
 })
+// delete video
 
 const deletevideo=asynchandler(async(req,res)=>{
 
@@ -157,6 +158,8 @@ return res.status(200).json(new apiResponse(200,{},"deleted successfully"))
 
 
 })
+// get all video
+
 
 export {
   publishVideo,
