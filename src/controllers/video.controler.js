@@ -3,6 +3,7 @@ import { apiError } from "../utils/apiError.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { deleteOnCloudninary, deleteVideoOnCloudninary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import {apiResponse} from "../utils/apiResponse.js"
+import mongoose from "mongoose";
 
 
 // publish video 
@@ -160,10 +161,130 @@ return res.status(200).json(new apiResponse(200,{},"deleted successfully"))
 })
 // get all video
 
+const getvideo = asynchandler(async (req, res) => {
+  const { limit = 10, page = 1, query, sortBy, sortType = "desc", userId } = req.query;
+  const sortOrder = sortType === "desc" ? -1 : 1;
+  const skip = (page - 1) * limit;
+
+  let pipeline = [];
+  console.log('Received Query:', query); // Log received query parameter
+
+  // Query filter
+  if (query) {
+    // Construct regex to match anywhere in the string
+    const regex = `.*${query}.*`;
+    pipeline.push({
+      $match: {
+        $or: [
+          { title: { $regex: regex, $options: "i" } }, // Correct regex pattern to match anywhere
+          { description: { $regex: regex, $options: "i" } }
+        ]
+      }
+    });
+  }
+
+  if (userId) {
+    pipeline.push({
+      $match: {
+        owner: new mongoose.Types.ObjectId(userId)
+      }
+    });
+  }
+
+  // Lookup to join with 'users' collection
+  pipeline.push({
+    $lookup: {
+      from: "users", // Ensure this is the correct collection name for user details
+      localField: "owner",
+      foreignField: "_id",
+      as: "ownerDetails"
+    }
+  });
+
+  // Unwind the 'ownerDetails' array
+  pipeline.push({ $unwind: "$ownerDetails" });
+
+  // Project only the desired fields
+  pipeline.push({
+    $project: {
+      _id: 1,
+      title: 1,
+      thumbnail: "$thumbnail.url",
+      owner: {
+        _id: "$ownerDetails._id",
+        fullName: "$ownerDetails.fullName",
+        username: "$ownerDetails.username",
+        avatar: "$ownerDetails.avatar.url" // Ensure this is the correct path
+      }
+    }
+  });
+
+  // Sorting and Pagination
+  if (sortBy) {
+    console.log('Sorting by:', sortBy, 'Order:', sortOrder); // Log sorting details
+    pipeline.push({
+      $sort: {
+        [sortBy]: sortOrder
+      }
+    });
+  }
+
+  pipeline.push(
+    { $skip: parseInt(skip) },
+    { $limit: parseInt(limit) }
+  );
+
+
+  // Fetch the results
+  const videos = await Video.aggregate(pipeline);
+  if (videos.length === 0) {
+    throw new apiError(404,"no video found")
+  }
+
+  res.status(200).json(new apiResponse(200, videos, "Fetched successfully"));
+});
+
+//Ispublish
+const ispublish=asynchandler(async(req,res)=>{
+
+
+  const{videoId}=req.params
+  if(videoId===":videoId"){
+    throw new apiError(400,"video Id required")
+  }
+
+  const video=await Video.findById(videoId)
+  if (!video) {
+    throw new apiError(404,"video not found")
+    
+  }
+  let publish
+  if (video.ispublished===true) {
+   publish=  await Video.findByIdAndUpdate(videoId,{
+    $set:{
+      ispublished:false
+    }
+    })
+    
+  }
+  else if(video.ispublished===false){
+  publish= await Video.findByIdAndUpdate(videoId,{
+      $set:{
+        ispublished:true
+      }})
+
+  }
+  return res.status(200)
+  .json( new apiResponse(200,`ispublish :${publish.ispublished}`,"data fetch successfully"))
+
+  
+})
 
 export {
   publishVideo,
   updateVideo,
   getVideoById,
-  deletevideo
+  deletevideo,
+  getvideo,
+  ispublish
 }

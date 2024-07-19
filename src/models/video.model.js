@@ -33,7 +33,7 @@ const videoSchema=new Schema({
         default:0
        } ,
      ispublished:{
-        type:String,
+        type:Boolean,
         default:true
        },
     owner:{

@@ -348,6 +348,9 @@ if(username===":username"){
                         _id: "$$video._id",
                        url:"$$video.videofile.url",
                         title: "$$video.title",
+                        discription:"$$video.discription",
+                        thumbnail:"$$video.thumbnail.url"
+
                         // Add other fields as needed
                     }
                 }
@@ -398,20 +401,14 @@ const user=await User.aggregate([
                     foreignField:"_id",
                     as:"owner",
                     pipeline:[
-                        {
-                            $project:{
-                                fullName:1,
-                                username:1,
-                                avatar:1,
-                            }
-                        },
+                       
                         {
                           $addFields:{
-                                owner:{
-                                    $first:"$owner"
-                                }
-                            }
-                        }
+                               owner:{                              
+                            $first:"$owner" } }
+                        },
+                      
+                        
                     ]
                 }
             }]
