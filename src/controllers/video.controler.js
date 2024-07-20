@@ -171,7 +171,6 @@ const getvideo = asynchandler(async (req, res) => {
 
   // Query filter
   if (query) {
-    // Construct regex to match anywhere in the string
     const regex = `.*${query}.*`;
     pipeline.push({
       $match: {
@@ -194,7 +193,7 @@ const getvideo = asynchandler(async (req, res) => {
   // Lookup to join with 'users' collection
   pipeline.push({
     $lookup: {
-      from: "users", // Ensure this is the correct collection name for user details
+      from: "users", 
       localField: "owner",
       foreignField: "_id",
       as: "ownerDetails"
