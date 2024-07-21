@@ -3,7 +3,7 @@ import { apiError } from "../utils/apiError.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { deleteOnCloudninary, deleteVideoOnCloudninary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import {apiResponse} from "../utils/apiResponse.js"
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 
 // publish video 
@@ -63,7 +63,8 @@ const updateVideo=asynchandler(async(req,res)=>{
 
 
   const {videoId}=req.params
-  if (videoId===":videoId") {
+  console.log(videoId)
+  if (!isValidObjectId(videoId) ) {
     throw new apiError(400,"videoId  id Rquired")
     
   }

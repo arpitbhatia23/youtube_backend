@@ -339,21 +339,6 @@ if(username===":username"){
                     then:true,
                     else:false,
                 }
-            },
-            videos: {
-                $map: {
-                    input: "$videos",
-                    as: "video",
-                    in: {
-                        _id: "$$video._id",
-                       url:"$$video.videofile.url",
-                        title: "$$video.title",
-                        discription:"$$video.discription",
-                        thumbnail:"$$video.thumbnail.url"
-
-                        // Add other fields as needed
-                    }
-                }
             }
 
         }

@@ -6,7 +6,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 
 
 const togglelike=asynchandler(async(req,res)=>{
-   try {
+
      const {videoId,commentId,tweetId,userId}=req.body
     
      if(!isValidObjectId(videoId || commentId || tweetId ||userId)){
@@ -37,75 +37,63 @@ const togglelike=asynchandler(async(req,res)=>{
  return res.status(200).json(new apiResponse(200,liked,"like succesfully"))
   }
   
-   } catch (error) {
-
-    throw new apiError(500,`internal server error || ${error.message}`)
-    
-   }
+  
 
 })
 
 const getVideoTotalLike=asynchandler(async(req,res)=>{
-    try {
+   
 
         const {videoId}=req.params
         if (!isValidObjectId(videoId)) {
             throw new apiError(400,"video id required")
         }
         const totalLike= await Like.countDocuments({Video:videoId})
+        if(totalLike===0){
+            throw new apiError(400,"no like found")
+        }             return res.status(200).json(new apiResponse(200,totalLike,"total like found"))
     
-             return res.status(200).json(new apiResponse(200,totalLike,"total like found"))
-    } catch (error) {
-        throw new apiError(500,`internal server error || ${error.message}`)
-    }
 })
 
 const totalCommentLike=asynchandler(async(req,res)=>{
-    try {
-
+   
         const {commentId}=req.params
         if (!isValidObjectId(commentId)) {
-            throw new apiError(400,"video id required")
+            throw new apiError(400," comment id required")
         }
         const totalLike=await Like.countDocuments({comment:commentId})
-        if(!totalLike){
+        if(totalLike===0){
             throw new apiError(400,"no like found")
         }
         return res.status(200).json(new apiResponse(200,totalLike,"total like found"))
         
-    } catch (error) {
-        throw new apiError(500,`internal server error || ${error.message}`)
-    }
+   
 })
 const totalTweetLike=asynchandler(async(req,res)=>{
-    try {
+  
 
         const {tweetId}=req.params
         if (!isValidObjectId(tweetId)) {
-            throw new apiError(400,"video id required")
+            throw new apiError(400," tweet id required")
         }
         const totalLike=await Like.countDocuments({tweet:tweetId})
         if(!totalLike){
             throw new apiError(400,"no like found")
         }
         return res.status(200).json(new apiResponse(200,totalLike,"total like found"))
-        
-    } catch (error) {
-        throw new apiError(500,`internal server error || ${error.message}`)
-    }
+  
 })
 
 const getItemsLikedByUser=asynchandler(async(req,res)=>{
+    const userId=req.user?._id
+
     try {
-        const {userId}=req.params
         if(!isValidObjectId(userId)){
             throw new apiError(400,"user id required")
         }
-        if(String(userId)!==String(req.user?._id)){
-            throw new apiError(401, "you have no permission to perform this action")
-        }
+       
         const items=await Like.find({likedby:userId})
-        .populate("video")
+        .populate("Video")
         .populate("comment")
         .populate("tweet")
         if (!items) {
@@ -115,7 +103,8 @@ const getItemsLikedByUser=asynchandler(async(req,res)=>{
  return res.status(200)
  .json(new apiResponse(200,{items},"liked item fetch sucessfully"))
     } catch (error) {
-        
+        throw new apiError(500,`internal server error || ${error.message}`)
+ 
     }
 })
 export {
