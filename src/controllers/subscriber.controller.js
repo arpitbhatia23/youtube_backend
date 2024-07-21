@@ -1,11 +1,11 @@
-import mongoose, {isValidObjectId} from "mongoose"
+import  {isValidObjectId} from "mongoose"
 import { Subscription } from "../models/subscriptions.model.js"
-import {apiError, ApiError} from "../utils/apiError.js"
-import {apiResponse, ApiResponse} from "../utils/apiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import {apiError, } from "../utils/apiError.js"
+import {apiResponse, } from "../utils/apiResponse.js"
+import {asynchandler} from "../utils/asyncHandler.js"
 
 
-const toggleSubscription = asyncHandler(async (req, res) => {
+const toggleSubscription = asynchandler(async (req, res) => {
     const {channelId} = req.params
     // TODO: toggle subscription
     if (!isValidObjectId(channelId)) {
@@ -32,7 +32,7 @@ return  res.status(200)
 })
 
 // controller to return subscriber list of a channel
-const getUserChannelSubscribers = asyncHandler(async (req, res) => {
+const getUserChannelSubscribers = asynchandler(async (req, res) => {
     const {channelId} = req.params
     if (!isValidObjectId(channelId)) {
         throw new apiError(400,"invalid channelId")
@@ -44,7 +44,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 })
 
 // controller to return channel list to which user has subscribed
-const getSubscribedChannels = asyncHandler(async (req, res) => {
+const getSubscribedChannels = asynchandler(async (req, res) => {
     const { subscriberId } = req.params
     if (!isValidObjectId(subscriberId)) {
         throw new apiError(400,"invaild suscriber id")

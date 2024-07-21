@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import { togglelike } from "../controllers/like.controler.js";
-import { getSubscribedChannels, getUserChannelSubscribers } from "../controllers/subscriber.controller";
+import { getSubscribedChannels, getUserChannelSubscribers } from "../controllers/subscriber.controller.js";
 
 const router=Router()
 router.route("/togglesubscription/:channelId").get(verifyJwt,togglelike)

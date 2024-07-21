@@ -1,10 +1,10 @@
-import mongoose, { isValidObjectId } from "mongoose"
+import  { isValidObjectId } from "mongoose"
 import {Tweet} from "../models/tweets.model.js"
 import {apiError, } from "../utils/apiError.js"
 import {apiResponse, } from "../utils/apiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import {asynchandler} from "../utils/asyncHandler.js"
 
-const createTweet = asyncHandler(async (req, res) => {
+const createTweet = asynchandler(async (req, res) => {
 
     //TODO: create tweet
 const{content}=req.body
@@ -26,7 +26,7 @@ return res.status(201)
 
 })
 
-const getUserTweets = asyncHandler(async (req, res) => {
+const getUserTweets = asynchandler(async (req, res) => {
     // TODO: get user tweets
        const{userId}=req.params
        if(!isValidObjectId(userId)){
@@ -37,7 +37,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     .json(new apiResponse(200,{tweets},"user tweets fetchsucessfully"))
 })
 
-const updateTweet = asyncHandler(async (req, res) => {
+const updateTweet = asynchandler(async (req, res) => {
     //TODO: update tweet
 const {tweetID}=req.params
 const {content}=req.body
@@ -62,7 +62,7 @@ return res.status(200)
       .json(new apiResponse(200,{},"tweet update sucessfully"))
 })
 
-const deleteTweet = asyncHandler(async (req, res) => {
+const deleteTweet = asynchandler(async (req, res) => {
     //TODO: delete tweet
     const {tweetID}=req.params
 if(!isValidObjectId(tweetID)){
