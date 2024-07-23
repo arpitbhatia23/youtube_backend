@@ -84,7 +84,7 @@ components:
 paths:
   /users/requestotp:
     post:
-      summary: Request OTP
+      summary: Request OTP for forgot password
       tags:
         - User
       requestBody:
