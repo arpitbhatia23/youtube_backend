@@ -39,10 +39,15 @@ app.use("/api/v1/dashboard",dashboardRouter)
 import path from "path"
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-
+import fs from "fs"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const swaggerdoc=YAML.load(path.join(__dirname,"./swagger.yaml"))
-app.use("/",SwaggerUi.serve,SwaggerUi.setup(swaggerdoc)
+const file = fs.readFileSync(path.resolve(__dirname, "./swagger.yaml"), "utf8");
+const swaggerDocument = YAML.parse(
+  file?.replace(
+    "- url: ${{server}}",
+    `- url: ${process.env.hostUrl || "http://localhost:8080"}/api/v1`
+  )
+);app.use("/",SwaggerUi.serve,SwaggerUi.setup(swaggerDocument)
 )
 export {app}

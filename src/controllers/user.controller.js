@@ -407,6 +407,7 @@ const user=await User.aggregate([
             localField:"watchhistory",
             foreignField:"_id",
             as:"watchhistory",
+            
             pipeline:[{
                 $lookup:{
                     from:"users",
@@ -426,14 +427,29 @@ const user=await User.aggregate([
                             avatar:"$avatar.url",
                             fullName:1,
                             video:1,
-
+                            
                         }
                        }
                       
                         
-                    ]
-                }
-            }]
+                    ],
+                    
+
+                },
+
+                
+            }
+        ,{$project:{
+            _id:1,
+            title:1,
+            duration:1,
+            thumbnail:"$thumbnail.url",
+            views:1,
+            owner:1
+
+        }
+    },
+    ]
         }
     }
 ])
