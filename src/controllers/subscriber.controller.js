@@ -23,7 +23,7 @@ const toggleSubscription = asynchandler(async (req, res) => {
       subscriber:req.user?._id
       })
 return  res.status(200)
-        .json(200,{},"subscription added successfully")
+        .json( new apiResponse(200,{},"subscription added successfully"))
     }
 
 
@@ -40,12 +40,13 @@ const getUserChannelSubscribers = asynchandler(async (req, res) => {
     }
     const channel=await Subscription.find({channel:channelId}).populate("subscriber","fullName username avatar email")
  return res.status(200)
- .json(new apiResponse(200,{channel},"subscriber fetch succesfully"))
+ .json(new apiResponse(200,channel,"subscriber fetch succesfully"))
 })
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asynchandler(async (req, res) => {
     const { subscriberId } = req.params
+    console.log(subscriberId)
     if (!isValidObjectId(subscriberId)) {
         throw new apiError(400,"invaild suscriber id")
     }

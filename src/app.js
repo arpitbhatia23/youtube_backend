@@ -1,6 +1,8 @@
 import express from "express"
 import cookieParser from "cookie-parser"
 import cors from 'cors'
+import YAML from "yamljs"
+import SwaggerUi from "swagger-ui-express"
 const app = express()
 
 app.use(cors({
@@ -23,7 +25,7 @@ import commentRouter from "./routes/comment.routes.js"
 import playlistRouter from "./routes/playlist.routes.js"
 import tweetRouter from "./routes/tweet.routes.js"
 import subscriptionRouter from "./routes/subscription.routes.js"
-import dashboardRoter from"./routes/dashboard.routes.js"
+import dashboardRouter from"./routes/dashboard.routes.js"
 //routes decleration
 app.use("/api/v1/users",userRouter)
 app.use("/api/v1/videos",videoRouter)
@@ -33,5 +35,14 @@ app.use("/api/v1/comment",commentRouter)
 app.use("/api/v1/playlist",playlistRouter)
 app.use("/api/v1/tweet",tweetRouter)
 app.use("/api/v1/subscription",subscriptionRouter)
-app.use("api/v1/dashboard",dashboardRoter)
+app.use("/api/v1/dashboard",dashboardRouter)
+import path from "path"
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const swaggerdoc=YAML.load(path.join(__dirname,"./swagger.yaml"))
+app.use("/",SwaggerUi.serve,SwaggerUi.setup(swaggerdoc)
+)
 export {app}

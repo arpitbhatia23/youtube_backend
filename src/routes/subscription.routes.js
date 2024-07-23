@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
-import { togglelike } from "../controllers/like.controler.js";
-import { getSubscribedChannels, getUserChannelSubscribers } from "../controllers/subscriber.controller.js";
+import { getSubscribedChannels, getUserChannelSubscribers, toggleSubscription } from "../controllers/subscriber.controller.js";
 
 const router=Router()
-router.route("/togglesubscription/:channelId").get(verifyJwt,togglelike)
+// take  channelID
+router.route("/togglesubscription/:channelId").get(verifyJwt,toggleSubscription)
+// take chanel id
 router.route("/getUserChannelSubscribers/:channelId").get(verifyJwt,getUserChannelSubscribers)
-router.route("/getSubscribedChannels/:channelId").get(verifyJwt,getSubscribedChannels)
+// take channe;ID
+router.route("/getSubscribedChannels/:subscriberId").get(verifyJwt,getSubscribedChannels)
 export default router

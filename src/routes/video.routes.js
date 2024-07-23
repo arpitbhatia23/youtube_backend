@@ -22,6 +22,8 @@ router.route("/update-video/:videoId").patch(verifyJwt,upload.single("thumbnail"
  
 router.route("/getvideoById/:videoId").get(verifyJwt,getVideoById)
 router.route("/deletevideo/:videoId").delete(verifyJwt,deletevideo)
+// take  limit = 10, page = 1, query, sortBy, sortType = "desc", userId } = req.query;
 router.route("/getvideos").get(verifyJwt,getvideo)
+// viedoId
 router.route("/ispublish/:videoId").get(verifyJwt,ispublish)
 export default router 

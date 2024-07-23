@@ -39,6 +39,12 @@ const userSchema= new Schema({
         }
         
     },
+    otp:{
+        type:String
+    },
+    otpExpire:{
+        type:String
+    },
     watchhistory:[{
         type:Schema.Types.ObjectId,
         ref:"Video"

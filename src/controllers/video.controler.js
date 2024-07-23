@@ -4,6 +4,7 @@ import { asynchandler } from "../utils/asyncHandler.js";
 import { deleteOnCloudninary, deleteVideoOnCloudninary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import {apiResponse} from "../utils/apiResponse.js"
 import mongoose, { isValidObjectId } from "mongoose";
+import { User } from "../models/user.model.js";
 
 
 // publish video 
@@ -63,7 +64,6 @@ const updateVideo=asynchandler(async(req,res)=>{
 
 
   const {videoId}=req.params
-  console.log(videoId)
   if (!isValidObjectId(videoId) ) {
     throw new apiError(400,"videoId  id Rquired")
     
@@ -111,13 +111,15 @@ const video=await Video.findByIdAndUpdate(videoId,
 
 const getVideoById=asynchandler(async(req,res)=>{
   const {videoId}=req.params
-  if (videoId===":videoId") {
+  if (!isValidObjectId(videoId)) {
     throw new apiError(400,"video id required")
   }
 
-
-
-
+await User.findByIdAndUpdate(req.user?._id,{
+  $addToSet:{
+    watchhistory:videoId
+  }
+})
   const video =await Video.findByIdAndUpdate(videoId,{
     $inc:{
       views:+1
@@ -136,7 +138,7 @@ const deletevideo=asynchandler(async(req,res)=>{
 
 const {videoId}=req.params
 // console.log(videoId)
-if (videoId===":videoId") {
+if (!isValidObjectId(videoId)) {
   throw new apiError(400,"video id required")
 }
 

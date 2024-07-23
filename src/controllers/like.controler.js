@@ -7,11 +7,12 @@ import { apiResponse } from "../utils/apiResponse.js";
 
 const togglelike=asynchandler(async(req,res)=>{
 
-     const {videoId,commentId,tweetId,userId}=req.body
+     const {videoId,commentId,tweetId}=req.body
     
-     if(!isValidObjectId(videoId || commentId || tweetId ||userId)){
+     if(!isValidObjectId(videoId || commentId || tweetId )){
          throw new apiError(400,"id requried")
      }
+     const userId=req.user?._id
   const existedLike= await Like.findOne({
      comment:commentId,
      Video:videoId,

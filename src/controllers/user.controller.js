@@ -1,12 +1,12 @@
 import { asynchandler} from "../utils/asyncHandler.js"
-
+import bcrypt from "bcrypt"
 import {apiError} from '../utils/apiError.js'
 import {User} from "../models/user.model.js"
 import {deleteOnCloudninary, uploadOnCloudinary} from "../utils/cloudinary.js"
 import { apiResponse } from "../utils/apiResponse.js"
 import jwt from 'jsonwebtoken'
-import { request } from "express"
 import mongoose from "mongoose"
+import { sendOtp, verifyOtp } from "../middlewares/nodemailer.middleware.js"
 const generateAccessTokenAndRefreshToken=async(userID)=>{
     try {
       const user=  await User.findById(userID)
@@ -24,6 +24,33 @@ const generateAccessTokenAndRefreshToken=async(userID)=>{
     }
 }
 
+const requestOtp=asynchandler(async(req,res)=>{
+    const {email}=req.body
+    if (!email) {
+        throw new apiError(400, 'email is required')
+        
+    }
+    console.log(email)
+  await sendOtp(email)
+ 
+    return  res.status(200)
+    .json(new apiResponse(200,{},`request send to youe email ${email}`))
+})
+// fogrotpassword
+const forgotPassword=asynchandler(async(req,res)=>{
+  const {email,otp,newPassword}=req.body
+  if (!(email&&otp)) throw new apiError(400,"email and otp reqired")
+
+   await verifyOtp(email,otp)
+
+   const user=await  User.findOne({email})
+   user.password = newPassword;   
+    await user.save({validateBeforeSave:false})
+
+return res.status(200)
+.json(new apiResponse( 200,{},"password reset suceesfully"))
+})
+
 const registerUser = asynchandler(async (req,res)=>{
 // get user details from frontend
 // validation - not empty
@@ -35,10 +62,11 @@ const registerUser = asynchandler(async (req,res)=>{
 // check for user creation
 // return res 
 
-const {fullName,email,username,password }=req.body 
+
+const {fullName,email,username,password,otp }=req.body 
 
 
-if ([fullName,username,email,password].some((field) => field?.trim() === "")) 
+if ([fullName,username,email,password,otp].some((field) => field?.trim() === "")) 
 {
    throw new apiError(400,"All fields are required")
 }
@@ -222,7 +250,7 @@ const getCurrentUser=asynchandler(async(req,res)=>{
 // update user details
 const UpdateAccountDetails=asynchandler(async(req,res)=>{
     const {fullName,email}=req.body 
-    if(!(fullName || !email)){
+    if(!(fullName || email)){
         throw new apiError(400,"all field  required")
     }
   const user= await  User.findByIdAndUpdate(
@@ -370,15 +398,15 @@ const getWatchHistory=asynchandler(async(req,res)=>{
 const user=await User.aggregate([
     {
         $match:{
-            _id:new mongoose.Types.ObjectId(req.user._id)
+            _id:req.user._id
         }
     },
     {
         $lookup:{
             from :"videos",
-            localField:"watchHistory",
+            localField:"watchhistory",
             foreignField:"_id",
-            as:"watchHistory",
+            as:"watchhistory",
             pipeline:[{
                 $lookup:{
                     from:"users",
@@ -392,6 +420,15 @@ const user=await User.aggregate([
                                owner:{                              
                             $first:"$owner" } }
                         },
+                       {
+                        $project:{
+                            username:1,
+                            avatar:"$avatar.url",
+                            fullName:1,
+                            video:1,
+
+                        }
+                       }
                       
                         
                     ]
@@ -420,5 +457,7 @@ export {
     updateAvatar,
     updateUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    requestOtp,
+    forgotPassword
 }

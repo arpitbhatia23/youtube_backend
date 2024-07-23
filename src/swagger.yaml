@@ -1,0 +1,1011 @@
+openapi: 3.0.0
+info:
+  title: YouTube-like API
+  description: API documentation for a YouTube-like backend.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000/api/v1
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        avatar:
+          type: string
+        coverimage:
+          type: string
+
+    Video:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+        thumbnail:
+          type: string
+
+    Tweet:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        userId:
+          type: string
+        videoId:
+          type: string
+
+    Playlist:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+
+    Dashboard:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalVideos:
+          type: integer
+        totalTweets:
+          type: integer
+        totalComments:
+          type: integer
+        totalPlaylists:
+          type: integer
+          
+paths:
+  /users/requestotp:
+    post:
+      summary: Request OTP
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: The user's email address
+              required:
+                - email
+      responses:
+        '200':
+          description: OTP sent successfully
+
+  /users/register:
+    post:
+      summary: Register a new user
+      tags:
+        - User
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "John Doe"
+                username:
+                  type: string
+                  example: "johndoe123"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                avatar:
+                  type: string
+                  format: binary
+                coverimage:
+                  type: string
+                  format: binary
+              required:
+                - fullName
+                - username
+                - email
+                - avatar
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/login:
+    post:
+      summary: Login user
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  example: "P@ssw0rd123"
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: User logged in successfully
+
+  /users/logout:
+    post:
+      summary: Logout user
+      tags:
+        - User
+      responses:
+        '200':
+          description: User logged out successfully
+        '400':
+          description: Bad request or error during logout
+        '401':
+          description: Unauthorized access if user is not authenticated
+
+  /users/refreshToken:
+    post:
+      summary: Refresh access token
+      tags:
+        - User
+      responses:
+        '200':
+          description: Access token refreshed
+
+  /users/change-password:
+    post:
+      summary: Change current password
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  example: "OldP@ssw0rd123"
+                newPassword:
+                  type: string
+                  example: "NewP@ssw0rd456"
+              required:
+                - oldPassword
+                - newPassword
+      responses:
+        '200':
+          description: Password changed successfully
+        '400':
+          description: Invalid input or error changing password
+        '401':
+          description: Unauthorized if old password is incorrect
+
+  /users/current-user:
+    get:
+      summary: Get current user
+      tags:
+        - User
+      responses:
+        '200':
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/update-account:
+    patch:
+      summary: Update account details
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+              required:
+                - fullName
+                - email
+      responses:
+        '200':
+          description: Account details updated successfully
+        '400':
+          description: Invalid input or error updating account details
+        '404':
+          description: User not found
+
+  /users/update-avatar:
+    patch:
+      summary: Update user avatar
+      tags:
+        - User
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar updated successfully
+
+  /users/update-coverimage:
+    patch:
+      summary: Update user cover image
+      tags:
+        - User
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                coverimage:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Cover image updated successfully
+
+  /users/c/{username}:
+    get:
+      summary: Get user channel profile
+      tags:
+        - User
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User channel profile
+
+  /users/watchHistory:
+    get:
+      summary: Get watch history
+      tags:
+        - User
+      responses:
+        '200':
+          description: Watch history
+
+  /users/forgot-password:
+    post:
+      summary: Forgot password
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "example@ab.com"
+                otp:
+                  type: string
+                  example: "123456"
+                newPassword:
+                  type: string
+                  example: "NewP@ssw0rd123"
+              required:
+                - email
+                - otp
+                - newPassword
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          description: Bad request
+        '404':
+          description: User not found
+          
+  /videos/getvideos:
+    get:
+      summary: "Retrieve a list of videos"
+      description: "Fetches a list of videos with optional filters and sorting."
+      tags:
+        - Video
+      parameters:
+        - name: "limit"
+          in: "query"
+          description: "Number of videos to return per page."
+          required: false
+          schema:
+            type: "integer"
+            example: 10
+        - name: "page"
+          in: "query"
+          description: "Page number for pagination."
+          required: false
+          schema:
+            type: "integer"
+            example: 1
+        - name: "query"
+          in: "query"
+          description: "Search query to filter videos."
+          required: false
+          schema:
+            type: "string"
+        - name: "sortBy"
+          in: "query"
+          description: "Field to sort the videos by."
+          required: false
+          schema:
+            type: "string"
+        - name: "sortType"
+          in: "query"
+          description: "Sort order (e.g., 'asc' or 'desc')."
+          required: false
+          schema:
+            type: "string"
+            default: "desc"
+            enum:
+              - "asc"
+              - "desc"
+        - name: "userId"
+          in: "query"
+          description: "Filter videos by user ID."
+          required: false
+          schema:
+            type: "string"
+      responses:
+        '200':
+          description: "A list of videos."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  videos:
+                    type: "array"
+                    items:
+                      type: "object"
+                      properties:
+                        id:
+                          type: "string"
+                          example: "60d21b4667d0d8992e610c85"
+                        title:
+                          type: "string"
+                          example: "Example Video Title"
+                        description:
+                          type: "string"
+                          example: "Example video description."
+                        thumbnailUrl:
+                          type: "string"
+                          example: "http://example.com/thumbnail.jpg"
+                        createdAt:
+                          type: "string"
+                          format: "date-time"
+                          example: "2024-07-23T12:34:56Z"
+        '400':
+          description: "Invalid parameters provided."
+        '401':
+          description: "Unauthorized. Authentication credentials were missing or invalid."
+        '500':
+          description: "Internal server error."        
+
+  /videos/publish-video:
+    post:
+      summary: Publish a new video
+      tags:
+        - Video
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "My Amazing Video"
+                description:
+                  type: string
+                  example: "This is a description of my amazing video."
+                video:
+                  type: string
+                  format: binary
+                thumbnail:
+                  type: string
+                  format: binary
+              required:
+                - title
+                - video
+                - description
+                - thumbnail
+      responses:
+        '201':
+          description: Video published successfully
+        '400':
+          description: Invalid input or error publishing video
+        '415':
+          description: Unsupported media type for video or thumbnail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+
+  /videos/update-video/{videoId}:
+   patch:
+      summary: Update video details
+      tags:
+        - Video
+      parameters:
+        - in: path
+          name: videoId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Updated Video Title"
+                  description: "The updated title of the video."
+                description:
+                  type: string
+                  example: "Updated description of the video."
+                  description: "The updated description of the video."
+                thumbnail:
+                  type: string
+                  format: binary
+                  description: "The updated thumbnail for the video."
+              required:
+                - title
+                - description
+      responses:
+        '200':
+          description: Video updated successfully
+        '400':
+          description: Bad request or invalid input
+        '404':
+          description: Video not found
+
+  /videos/getvideoById/{videoId}:
+    get:
+      summary: Get video by ID
+      tags:
+        - Video
+      parameters:
+        - in: path
+          name: videoId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Video details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+
+  /videos/deletevideo/{videoId}:
+    delete:
+      summary: Delete a video
+      tags:
+        - Video
+      parameters:
+        - in: path
+          name: videoId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Video deleted successfully
+
+  /playlist/create:
+    post:
+      summary: Create a new playlist
+      tags:
+        - Playlist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "My Favorite Playlist"
+                description:
+                  type: string
+                  example: "A playlist of my favorite videos."
+              required:
+                - name
+      responses:
+        '201':
+          description: Playlist created successfully
+
+  /playlist/update/{playlistId}:
+    patch:
+      summary: Update a playlist
+      tags:
+        - Playlist
+      parameters:
+        - in: path
+          name: playlistId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated Playlist Name"
+                description:
+                  type: string
+                  example: "Updated description."
+      responses:
+        '200':
+          description: Playlist updated successfully
+
+  /playlist/delete/{playlistId}:
+    delete:
+      summary: Delete a playlist
+      tags:
+        - Playlist
+      parameters:
+        - in: path
+          name: playlistId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Playlist deleted successfully
+
+  /addVideoToPlaylist/{playlistId}:
+    post:
+      summary: Add a video to a playlist
+      tags:
+        - Playlist
+      parameters:
+        - in: path
+          name: playlistId
+          required: true
+          schema:
+            type: string
+          description: "ID of the playlist to which the video will be added"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                videoId:
+                  type: string
+                  description: "ID of the video to be added to the playlist"
+              required:
+                - videoId
+      responses:
+        '200':
+          description: Video added to playlist successfully
+
+  /removeVideoFromPlaylist/{playlistId}:
+    post:
+      summary: Add a video to a playlist
+      tags:
+        - Playlist
+      parameters:
+        - in: path
+          name: playlistId
+          required: true
+          schema:
+            type: string
+          description: "ID of the playlist to which the video will be added"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                videoId:
+                  type: string
+                  description: "ID of the video to be added to the playlist"
+              required:
+                - videoId
+      responses:
+        '200':
+          description: Video removed from playlist successfully
+
+  /comments/add:
+    post:
+      summary: Add a comment to a video
+      tags:
+        - Comment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                videoId:
+                  type: string
+                  example: "123456"
+                content:
+                  type: string
+                  example: "Great video!"
+              required:
+                - videoId
+                - content
+      responses:
+        '201':
+          description: Comment added successfully
+  /updatecomment/{commentId}:
+    patch:
+      summary: Update a comment
+      tags:
+        - Comment
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+          description: "ID of the comment to be updated"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: "Updated content of the comment"
+              required:
+                - content
+      responses:
+        '200':
+          description: "Comment successfully updated"        
+
+  /comments/delete/{commentId}:
+    delete:
+      summary: Delete a comment
+      tags:
+        - Comment
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comment deleted successfully
+
+  /comments/getallcomment/{videoId}:
+    get:
+      summary: Get comments for a video
+      tags:
+        - Comment
+      parameters:
+        - in: path
+          name: videoId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of comments
+
+  /tweet/createtweet:
+    post:
+      summary: Add a new tweet
+      tags:
+        - Tweet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "Just watched an awesome video!"
+              required:
+                - content
+      responses:
+        '201':
+          description: Tweet added successfully
+
+  /tweet/tweets/delete/{tweetId}:
+    delete:
+      summary: Delete a tweet
+      tags:
+        - Tweet
+      parameters:
+        - in: path
+          name: tweetId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tweet deleted successfully
+
+  /tweet/getUserTweets/{userId}:
+    get:
+      summary: Get tweets by a user
+      tags:
+        - Tweet
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tweets by user
+  /tweet/updateTweet/{tweetId}:
+    patch:
+      summary: Update a tweet
+      tags:
+        - Tweet
+      parameters:
+        - in: path
+          name: tweetId
+          required: true
+          schema:
+            type: string
+          description: "ID of the tweet to be updated"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: "Updated content of the tweet"
+              required:
+                - content
+      responses:
+        '200':
+          description: "Tweet successfully updated"
+
+  /dashboard/getChannelStats/{channelId}:
+    get:
+      summary: Get channel statistics
+      tags: [Dashboard]
+       
+      parameters:
+        - in: path
+          name: channelId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Channel statistics
+
+  /dashboard/getChannelVideos/{channelId}:
+    get:
+      summary: Get channel videos
+      tags: [Dashboard]
+       
+      parameters:
+        - in: path
+          name: channelId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Channel videos
+  /subscription/togglesubscription/{channelId}:
+    get:
+      summary: Subscribe to a channel
+      tags:
+        - Subscription
+        
+      parameters:
+       - in: path
+         name: channelId
+         required: true
+         schema:
+            type: string
+         
+      responses:
+        '201':
+          description: Subscribed successfully
+
+  /subscription/getUserChannelSubscribers/{channelId}:
+    get:
+      summary: Get subscriptions for a user
+      tags:
+        - Subscription
+      parameters:
+        - in: path
+          name: channelId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of subscriber  of user
+
+  /subscription/getSubscribedChannels/{subscriberId}:
+    get:
+      summary: Get subscriptions for a user
+      tags:
+        - Subscription
+      parameters:
+        - in: path
+          name: subscriberId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of channel for user
+          
+  /likes/toggleLike:
+    post:
+      summary: Toggle like status for a video, comment, or tweet
+      tags:
+        - Like
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+               videoId:
+                 type: string
+               commentId:
+                 type: string
+               tweetId:
+                 type: string
+               userId:
+                 type: string
+                 
+      responses:
+        '200':
+          description: Like status toggled successfully
+         
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /likes/totalVideoLike/{videoId}:
+    get:
+      summary: Get total likes for a specific video
+      tags:
+        - Like
+      parameters:
+        - in: path
+          name: videoId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Total likes for the video
+          
+        '404':
+          description: Video not found
+        '401':
+          description: Unauthorized
+
+  /likes/totalCommentLike/{commentId}:
+    get:
+      summary: Get total likes for a specific comment
+      tags:
+        - Like
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Total likes for the comment
+          
+        '404':
+          description: Comment not found
+        '401':
+          description: Unauthorized
+
+  /likes/totalTweetLike/{tweetId}:
+    get:
+      summary: Get total likes for a specific tweet
+      tags:
+        - Like
+      parameters:
+        - in: path
+          name: tweetId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Total likes for the tweet
+          
+        '404':
+          description: Tweet not found
+        '401':
+          description: Unauthorized
+
+  /likes/getItemsLikeByUser:
+    get:
+      summary: Get all items liked by a specific user
+      tags:
+        - Like
+      responses:
+        '200':
+          description: Items liked by the user
+          
+        '401':
+          description: Unauthorized        

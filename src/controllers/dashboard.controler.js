@@ -8,35 +8,41 @@ import {asynchandler} from "../utils/asyncHandler.js"
 
 const getChannelStats = asynchandler(async (req, res) => {
     // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
-    const { channelId } = req.params;
-    if (!isValidObjectId(channelId)) {
-        throw new apiError(400, "Invalid channelId");
+    try {
+        const { channelId } = req.params;
+        if (!isValidObjectId(channelId)) {
+            throw new apiError(400, "Invalid channelId");
+        }
+    
+        // Total Videos
+        const totalVideos = await Video.countDocuments({ owner: channelId });
+    console.log(totalVideos)
+        // Total Video Views
+        const videos = await Video.find({ owner: channelId }, 'views');
+        const totalViews = videos.reduce((sum, video) => sum + (video.views || 0), 0);
+        console.log('Total Views:', totalViews);
+
+        // Total Subscribers
+        const totalSubscribers = await Subscription.countDocuments({ channel: channelId });
+    console.log(totalSubscribers)
+        // Total Likes
+        const videoIds = await Video.find({ owner: channelId }, { _id: 1 }).lean();
+        const totalLikes = await Like.countDocuments({Video:videoIds.map(video => video._id) });
+        console.log(totalLikes)
+    
+        const stats = {
+            totalVideos,
+            totalViews,
+            totalSubscribers,
+            totalLikes
+        };
+        res.status(200).
+    json(new apiResponse(200, stats, "Channel stats fetched successfully"));
+    } catch (error) {
+        console.log(error)
     }
 
-    // Total Videos
-    const totalVideos = await Video.countDocuments({ owner: channelId });
-
-    // Total Video Views
-    const totalViewsResult = await Video.aggregate([
-        { $match: { owner: mongoose.Types.ObjectId(channelId) } },
-        { $group: { _id: null, totalViews: { $sum: "$views" } } }
-    ]);
-    const totalViews = totalViewsResult[0]?.totalViews || 0;
-
-    // Total Subscribers
-    const totalSubscribers = await Subscription.countDocuments({ channel: channelId });
-
-    // Total Likes
-    const totalLikes = await Like.countDocuments({ video: { $in: (await Video.find({ owner: channelId }).select('_id')) } });
-
-    const stats = {
-        totalVideos,
-        totalViews,
-        totalSubscribers,
-        totalLikes
-    };
-
-    res.status(200).json(new apiResponse(200, stats, "Channel stats fetched successfully"));
+    
 });
 
 
