@@ -3,6 +3,8 @@ import {apiError} from "../utils/apiError.js"
 import { Playlist } from "../models/playlist.model.js"
 import {apiResponse} from "../utils/apiResponse.js"
 import { isValidObjectId } from "mongoose"
+
+// create playlist
 const createPlaylist=asynchandler(async(req,res)=>{
     const {name,description}=req.body
 
@@ -26,7 +28,7 @@ const createPlaylist=asynchandler(async(req,res)=>{
     .json(new apiResponse(201,playlist,"playlist created sucessfully"))
 
 })
-
+// update
 const updatePlaylist=asynchandler(async(req,res)=>{
     const {name,description}=req.body
    const {playlistId}=req.params
@@ -57,7 +59,7 @@ const updatePlaylist=asynchandler(async(req,res)=>{
  .json(new apiResponse(200,{},"playlist updated successfuly"))
         
     })
-
+// delete
     const deletePlaylist=asynchandler(async(req,res)=>{
        const {playlistId}=req.params
        if (!isValidObjectId(playlistId)) {
@@ -79,7 +81,7 @@ const updatePlaylist=asynchandler(async(req,res)=>{
      .json(new apiResponse(200,{},"playlist deleted successfuly"))
             
         })
-
+//add
         const addVideoToPlaylist=asynchandler(async(req,res)=>{
       const {playlistId}=req.params
       const {videoId}=req.body
@@ -98,7 +100,7 @@ const updatePlaylist=asynchandler(async(req,res)=>{
       .json(new apiResponse(200,{playlist},"video added succesfully"))
 
         })
-
+// remove
 const removeVideoFromPlaylist=asynchandler(async(req,res)=>{
     const {playlistId}=req.params
     const {videoId}=req.body
@@ -117,10 +119,48 @@ const removeVideoFromPlaylist=asynchandler(async(req,res)=>{
     .json(new apiResponse(200,{playlist},"video remove succesfully"))
 
 })
+
+// getUserplaylist
+const getUserPlaylist=asynchandler(async(req,res)=>{
+ const {userId}=req.params
+ if(!isValidObjectId(userId)){
+    throw new apiError(400,"invalid user Id")
+
+ }
+const playlist =await Playlist.findById(userId)
+if (!playlist) {
+    throw new apiError(400,"playlist not found")
+}
+return res.status(200)
+.json(new apiResponse(200,playlist,"playlsit fetch sucessfully"))
+
+
+})
+
+const getPlaylistbyId=asynchandler(async(req,res)=>{
+    const {playlistId}=req.params
+    if(!isValidObjectId(playlistId)){
+       throw new apiError(400,"invalid playlsit Id")
+   
+    }
+   const playlist =await Playlist.findById(playlistId)
+   if (!playlist) {
+       throw new apiError(400,"playlist not found")
+   }
+   return res.status(200)
+   .json(new apiResponse(200,{playlist},"playlsit fetch sucessfully"))
+   
+   
+   })
+
+
 export {
     createPlaylist,
     updatePlaylist,
     deletePlaylist,
     addVideoToPlaylist,
-    removeVideoFromPlaylist
+    removeVideoFromPlaylist,
+    getUserPlaylist,
+    getPlaylistbyId
+    
 }
