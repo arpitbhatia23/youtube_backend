@@ -728,7 +728,7 @@ paths:
         '404':
           description: "Playlist not found"        
 
-  /comments/add:
+  /comment/createcomment:
     post:
       summary: Add a comment to a video
       tags:
@@ -751,7 +751,7 @@ paths:
       responses:
         '201':
           description: Comment added successfully
-  /updatecomment/{commentId}:
+  /comment/updatecomment/{commentId}:
     patch:
       summary: Update a comment
       tags:
@@ -779,7 +779,7 @@ paths:
         '200':
           description: "Comment successfully updated"        
 
-  /comments/delete/{commentId}:
+  /comment/deletecomment/{commentId}:
     delete:
       summary: Delete a comment
       tags:
@@ -794,7 +794,7 @@ paths:
         '200':
           description: Comment deleted successfully
 
-  /comments/getallcomment/{videoId}:
+  /comment/getallcomment/{videoId}:
     get:
       summary: Get comments for a video
       tags:

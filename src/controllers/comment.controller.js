@@ -7,9 +7,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 const comment=asynchandler(async(req,res)=>{
    try {
      const {videoId,content}=req.body
-     console.log(videoId,content)
      const userId=req.user?._id
-     console.log(userId)
      if(!(videoId&&content)){
      throw new apiError(400,"videoId and content required")
      }
@@ -68,7 +66,6 @@ const deletecomment=asynchandler(async(req,res)=>{
             throw new apiError (400,"user id required")
         }
         const comment=await Comment.findById(commentId)
-        console.log(comment.owner ,req.user._id)
         if(String(comment.owner)!==String(req.user?._id)){
             throw new apiError(400, "you have no persmission to perform this action")
         }
