@@ -127,7 +127,7 @@ const getUserPlaylist=asynchandler(async(req,res)=>{
     throw new apiError(400,"invalid user Id")
 
  }
-const playlist =await Playlist.findById(userId)
+const playlist =await Playlist.findOne({owner:userId})
 if (!playlist) {
     throw new apiError(400,"playlist not found")
 }
@@ -152,7 +152,6 @@ const getPlaylistbyId=asynchandler(async(req,res)=>{
    
    
    })
-
 
 export {
     createPlaylist,
