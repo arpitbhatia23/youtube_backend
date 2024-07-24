@@ -2,7 +2,7 @@ import {asynchandler} from "../utils/asyncHandler.js"
 import {apiError} from "../utils/apiError.js"
 import { Playlist } from "../models/playlist.model.js"
 import {apiResponse} from "../utils/apiResponse.js"
-import { isValidObjectId } from "mongoose"
+import mongoose, { isValidObjectId } from "mongoose"
 
 // create playlist
 const createPlaylist=asynchandler(async(req,res)=>{
@@ -127,12 +127,88 @@ const getUserPlaylist=asynchandler(async(req,res)=>{
     throw new apiError(400,"invalid user Id")
 
  }
-const playlist =await Playlist.findOne({owner:userId})
-if (!playlist) {
+ const playlist =await Playlist.aggregate([{
+    $match:{owner:new mongoose.Types.ObjectId(userId)}
+   },
+   {
+    $lookup:{
+        from:"videos",
+        localField:"video",
+        foreignField:"_id",
+        as:"video",
+        pipeline:[
+            {
+                $lookup:{
+                    from:"users",
+                    localField:"owner",
+                    foreignField:"_id",
+                    as:"owner",
+                    pipeline:[
+                        {
+                            $addFields:{
+                                owner:{$first:"$owner"}
+                            }
+                        },
+                        {
+                            $project:{
+                                username:1,
+                            avatar:"$avatar.url",
+                            }
+                        }
+
+                    ]
+                },
+
+                
+            },
+            {
+                $project:{
+                    _id:1,
+                    thumbnail:"$thumbnail.url",
+                    title:1,
+                    duration:1,
+                    views:1,
+                    owner:1
+
+                }
+            }
+        ]
+            
+        
+    }, 
+   
+       
+   },
+   {
+   $lookup:{
+    from:"users",
+    localField:"owner",
+    foreignField:"_id",
+    as:"owner",
+    pipeline:[
+        {
+            $project:{
+                _id:1,
+               username:1,
+               avatar:"$avatar.url"
+            }
+        }
+    ]
+}  
+}
+   
+  
+   
+
+])
+
+    
+
+  if (!playlist) {
     throw new apiError(400,"playlist not found")
 }
 return res.status(200)
-.json(new apiResponse(200,playlist,"playlsit fetch sucessfully"))
+.json(new apiResponse(200,playlist[0],"playlsit fetch sucessfully"))
 
 
 })
@@ -143,12 +219,86 @@ const getPlaylistbyId=asynchandler(async(req,res)=>{
        throw new apiError(400,"invalid playlsit Id")
    
     }
-   const playlist =await Playlist.findById(playlistId)
+   const playlist =await Playlist.aggregate([{
+    $match:{_id:new mongoose.Types.ObjectId(playlistId)}
+   },
+   {
+    $lookup:{
+        from:"videos",
+        localField:"video",
+        foreignField:"_id",
+        as:"video",
+        pipeline:[
+            {
+                $lookup:{
+                    from:"users",
+                    localField:"owner",
+                    foreignField:"_id",
+                    as:"owner",
+                    pipeline:[
+                        {
+                            $addFields:{
+                                owner:{$first:"$owner"}
+                            }
+                        },
+                        {
+                            $project:{
+                                username:1,
+                            avatar:"$avatar.url",
+                            }
+                        }
+
+                    ]
+                },
+
+                
+            },
+            {
+                $project:{
+                    _id:1,
+                    thumbnail:"$thumbnail.url",
+                    title:1,
+                    duration:1,
+                    views:1,
+                    owner:1
+
+                }
+            }
+        ]
+            
+        
+    }, 
+   
+       
+   },
+   {
+   $lookup:{
+    from:"users",
+    localField:"owner",
+    foreignField:"_id",
+    as:"owner",
+    pipeline:[
+        {
+            $project:{
+                _id:1,
+               username:1,
+               avatar:"$avatar.url"
+            }
+        }
+    ]
+}  
+}
+   
+  
+   
+
+])
+
    if (!playlist) {
        throw new apiError(400,"playlist not found")
    }
    return res.status(200)
-   .json(new apiResponse(200,{playlist},"playlsit fetch sucessfully"))
+   .json(new apiResponse(200,playlist,"playlsit fetch sucessfully"))
    
    
    })
