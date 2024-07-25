@@ -171,7 +171,11 @@ const getvideo = asynchandler(async (req, res) => {
 
   let pipeline = [];
   console.log('Received Query:', query); // Log received query parameter
-
+   pipeline.push({
+    $match:{
+      ispublished:true
+    }
+   })
   // Query filter
   if (query) {
     const regex = `.*${query}.*`;
@@ -267,18 +271,20 @@ const ispublish=asynchandler(async(req,res)=>{
       ispublished:false
     }
     })
-    
+    return res.status(200)
+    .json( new apiResponse(200,`ispublish :false`," video unpublish successfully"))
+  
   }
   else if(video.ispublished===false){
   publish= await Video.findByIdAndUpdate(videoId,{
       $set:{
         ispublished:true
       }})
-
+      return res.status(200)
+      .json( new apiResponse(200,`ispublish :true`," video publish successfully"))
+    
   }
-  return res.status(200)
-  .json( new apiResponse(200,`ispublish :${publish.ispublished}`,"data fetch successfully"))
-
+ 
   
 })
 

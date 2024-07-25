@@ -438,7 +438,22 @@ paths:
           description: "Unauthorized. Authentication credentials were missing or invalid."
         '500':
           description: "Internal server error."        
-
+  /videos/ispublish/{videoId}:
+    get:
+      summary: Toggle video publish status
+      description: Toggles the publish status of a video.
+      tags:
+        - Video
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          description: The ID of the video to toggle publish status.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully toggled publish status
   /videos/publish-video:
     post:
       summary: Publish a new video

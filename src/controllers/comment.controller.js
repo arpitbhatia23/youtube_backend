@@ -1,4 +1,4 @@
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Comment } from "../models/comments.model.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { apiError } from "../utils/apiError.js";
@@ -86,10 +86,48 @@ const getallcomment=asynchandler(async(req,res)=>{
         if(!isValidObjectId(videoId)){
             throw new apiError(400,"video id required")
         }
-const comments=await Comment.find({video:videoId}).sort({createdAt:sortOrder}).skip(skip).limit(limit)
+        const comments = await Comment.aggregate([
+            {
+              $match: { video: new mongoose.Types.ObjectId(videoId) }
+            },
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "ownerDetails"
+              }
+            },
+            {
+              $unwind: "$ownerDetails"
+            },
+            {
+              $project: {
+                _id: 1,
+                content: 1,
+                createdAt: 1,
+                owner: {
+                  _id: "$ownerDetails._id",
+                  username: "$ownerDetails.username",
+                  avatar: "$ownerDetails.avatar.url"
+                }
+              }
+            },
+            {
+              $sort: {
+                createdAt: sortOrder
+              }
+            },
+            {
+              $skip: skip
+            },
+            {
+              $limit: parseInt(limit)
+            }
+          ]);
  
 return res.status(200)
-.json(new apiResponse(200,{comments},"comment fetch succesfully"))
+.json(new apiResponse(200,comments,"comment fetch succesfully"))
 
 
     } catch (error) {
